@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.govportal.project.mapper.ProjectMapper">
+
+    <resultMap id="projectMap" type="egovframework.govportal.project.model.ProjectVO">
+        <id property="id" column="id"/>
+        <result property="tenantId" column="tenant_id"/>
+        <result property="name" column="name"/>
+        <result property="country" column="country"/>
+        <result property="sector" column="sector"/>
+        <result property="languages" column="languages"/>
+        <result property="codebook" column="codebook"/>
+        <result property="odkProjectId" column="odk_project_id"/>
+        <result property="odkProjectUuid" column="odk_project_uuid"/>
+        <result property="odkXmlFormId" column="odk_xml_form_id"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="deletedAt" column="deleted_at"/>
+        <result property="deletedBy" column="deleted_by"/>
+    </resultMap>
+
+    <resultMap id="templateMap" type="egovframework.govportal.project.model.FormTemplateVO">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="jsonSpec" column="json_spec"/>
+    </resultMap>
+
+    <insert id="insertProject">
+        insert into projects_biz
+        (id, tenant_id, name, country, sector, languages, codebook, odk_project_id, odk_project_uuid, odk_xml_form_id, status, created_by, created_at)
+        values (#{id}, #{tenantId}, #{name}, #{country}, #{sector}, #{languages},
+                CAST(COALESCE(NULLIF(#{codebook}, ''), '{}') AS jsonb),
+                #{odkProjectId}, #{odkProjectUuid}, #{odkXmlFormId}, #{status}, #{createdBy}, current_timestamp)
+    </insert>
+
+    <update id="updateProject">
+        update projects_biz
+        set name = #{name},
+            country = #{country},
+            sector = #{sector},
+            languages = #{languages},
+            codebook = CAST(COALESCE(NULLIF(#{codebook}, ''), '{}') AS jsonb),
+            odk_project_id = #{odkProjectId},
+            odk_project_uuid = #{odkProjectUuid},
+            odk_xml_form_id = #{odkXmlFormId},
+            status = #{status}
+        where id = #{id}
+    </update>
+
+    <update id="updateProjectOdkInfo">
+        update projects_biz
+        set odk_project_id = #{odkProjectId},
+            odk_project_uuid = #{odkProjectUuid}
+        where id = #{projectId}
+    </update>
+
+    <select id="selectProject" resultMap="projectMap">
+        select * from projects_biz where id = #{projectId} and deleted_at is null
+    </select>
+
+    <select id="selectProjects" resultMap="projectMap">
+        select * from projects_biz where deleted_at is null order by created_at desc
+    </select>
+
+    <select id="selectDeletedProjects" resultMap="projectMap">
+        select * from projects_biz where deleted_at is not null order by deleted_at desc
+    </select>
+
+    <update id="deleteProject">
+        update projects_biz
+        set deleted_at = current_timestamp,
+            deleted_by = #{actorId}
+        where id = #{projectId}
+    </update>
+
+    <update id="restoreProject">
+        update projects_biz
+        set deleted_at = null,
+            deleted_by = null
+        where id = #{projectId}
+    </update>
+
+    <delete id="permanentlyDeleteProject">
+        delete from projects_biz where id = #{projectId}
+    </delete>
+
+    <insert id="insertProjectForm">
+        insert into project_forms
+        (id, project_id, template_name, version, uploaded_at)
+        values (#{id}, #{projectId}, #{templateName}, #{version}, #{uploadedAt})
+    </insert>
+
+    <insert id="insertIntegration">
+        insert into project_integrations
+        (id, project_id, type, payload)
+        values (#{id}, #{projectId}, #{type}, #{payload})
+    </insert>
+
+    <select id="selectFormTemplates" resultMap="templateMap">
+        select * from form_templates order by name
+    </select>
+
+    <select id="selectFormTemplate" resultMap="templateMap">
+        select * from form_templates where id = #{templateId}
+    </select>
+
+</mapper>

@@ -1,0 +1,5 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Feb 19 10:42:36 KST 2025
+javaparser-core-3.26.1.jar>mvn2s=
+javaparser-core-3.26.1.pom>mvn2s=
+javaparser-core-3.26.1-sources.jar>mvn2s=

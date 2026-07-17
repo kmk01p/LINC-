@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+        <property name="driverClassName"
+                  value="${SPRING_DATASOURCE_DRIVER_CLASS_NAME:${Globals.PostgreSQL.DriverClassName}}"/>
+        <property name="jdbcUrl" value="${SPRING_DATASOURCE_URL:${Globals.PostgreSQL.Url}}"/>
+        <property name="username" value="${SPRING_DATASOURCE_USERNAME:${Globals.PostgreSQL.UserName}}"/>
+        <property name="password" value="${SPRING_DATASOURCE_PASSWORD:${Globals.PostgreSQL.Password}}"/>
+        <property name="maximumPoolSize" value="10"/>
+        <property name="minimumIdle" value="2"/>
+        <property name="connectionTimeout" value="30000"/>
+        <property name="connectionInitSql" value="SET CLIENT_ENCODING TO 'UTF8'"/>
+        <property name="dataSourceProperties">
+            <props>
+                <prop key="characterEncoding">UTF-8</prop>
+                <prop key="useUnicode">true</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+</beans>

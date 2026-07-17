@@ -1,0 +1,12 @@
+{
+  "name": "egov-lowdata-suite",
+  "version": "1.0.0",
+  "description": "전자정부표준프레임워크(eGovFrame) 기반으로 개발된 로우데이터 분석 모노레포입니다. 이 프로젝트는 공공기관에서 현장 자료를 효율적으로 수집‑분석하고 관리자용 제어 기능을 제공하기 위해 설계되었습니다. Spring Boot 3.x와 Thymeleaf를 이용한 콘솔(Web UI), ODK Central 연동, Metabase 대시보드, dbt ETL 파이프라인, JSON→XLSForm 변환 사이드카 등 여러 컴포넌트를 하나의 저장소로 관리합니다.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

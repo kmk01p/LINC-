@@ -1,0 +1,68 @@
+[
+  {
+    "name": "Reach",
+    "display": "bar",
+    "dataset_query": {
+      "type": "native",
+      "native": {
+        "query": "select diagnosis, submission_count from marts.kpi_ops order by submission_count desc"
+      },
+      "database": 1
+    }
+  },
+  {
+    "name": "Quality",
+    "display": "bar",
+    "dataset_query": {
+      "type": "native",
+      "native": {
+        "query": "select diagnosis, submission_count from marts.kpi_ops"
+      },
+      "database": 1
+    }
+  },
+  {
+    "name": "Action List",
+    "display": "table",
+    "dataset_query": {
+      "type": "native",
+      "native": {
+        "query": "select * from marts.kpi_ops"
+      },
+      "database": 1
+    }
+  },
+  {
+    "name": "Diagnosis Distribution",
+    "display": "pie",
+    "dataset_query": {
+      "type": "native",
+      "native": {
+        "query": "select diagnosis, submission_count from marts.kpi_ops"
+      },
+      "database": 1
+    }
+  },
+  {
+    "name": "Attach & Validity",
+    "display": "table",
+    "dataset_query": {
+      "type": "native",
+      "native": {
+        "query": "select diagnosis, submission_count from marts.kpi_ops"
+      },
+      "database": 1
+    }
+  },
+  {
+    "name": "Model Health",
+    "display": "bar",
+    "dataset_query": {
+      "type": "native",
+      "native": {
+        "query": "select diagnosis, submission_count from marts.kpi_ops"
+      },
+      "database": 1
+    }
+  }
+]

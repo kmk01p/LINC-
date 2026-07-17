@@ -1,0 +1,266 @@
+services:
+  # Database
+  postgres:
+    build:
+      context: .
+      dockerfile: ./postgres/Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles: [local, cloud]
+
+  # ODK Central stack (only in local profile)
+  postgres14:
+    build:
+      context: ./vendor/getodk-central
+      dockerfile: postgres14.dockerfile
+    profiles: [local]
+    environment:
+      POSTGRES_USER: odk
+      POSTGRES_PASSWORD: odk
+      POSTGRES_DB: odk
+    volumes:
+      - odk_postgres14:/var/lib/odk/postgresql/14
+
+  mail:
+    image: mailhog/mailhog:v1.0.1
+    profiles: [local]
+    environment:
+      MH_STORAGE: memory
+    ports:
+      - "8025:8025"
+
+  secrets:
+    build:
+      context: ./vendor/getodk-central
+      dockerfile: secrets.dockerfile
+    command: ./generate-secrets.sh
+    profiles: [local]
+    volumes:
+      - odk_secrets:/etc/secrets
+
+  enketo_redis_main:
+    image: redis:7.4.2
+    profiles: [local]
+    command:
+      - redis-server
+    volumes:
+      - odk_redis_main:/data
+
+  enketo_redis_cache:
+    image: redis:7.4.2
+    profiles: [local]
+    command:
+      - redis-server
+    volumes:
+      - odk_redis_cache:/data
+
+  enketo:
+    build:
+      context: ./vendor/getodk-central
+      dockerfile: enketo.dockerfile
+    profiles: [local]
+    depends_on:
+      - secrets
+      - enketo_redis_main
+      - enketo_redis_cache
+    environment:
+      DOMAIN: odk
+      SUPPORT_EMAIL: admin@example.com
+      HTTPS_PORT: ""
+    volumes:
+      - odk_secrets:/etc/secrets
+
+  pyxform:
+    image: ghcr.io/getodk/pyxform-http:v3.1.0
+    profiles: [local]
+
+  service:
+    build:
+      context: ./vendor/getodk-central
+      dockerfile: service.dockerfile
+    profiles: [local]
+    depends_on:
+      - secrets
+      - postgres14
+      - mail
+      - pyxform
+      - enketo
+    command:
+      - wait-for-it
+      - postgres14:5432
+      - --
+      - ./start-odk.sh
+    environment:
+      DOMAIN: odk
+      SYSADMIN_EMAIL: admin@example.com
+      HTTPS_PORT: ""
+      NODE_OPTIONS: ""
+      DB_HOST: postgres14
+      DB_USER: odk
+      DB_PASSWORD: odk
+      DB_NAME: odk
+      DB_SSL: "null"
+      EMAIL_FROM: no-reply@localhost
+      EMAIL_HOST: mail
+      EMAIL_PORT: 1025
+      EMAIL_SECURE: "false"
+      EMAIL_IGNORE_TLS: "true"
+      EMAIL_USER: ""
+      EMAIL_PASSWORD: ""
+      OIDC_ENABLED: "false"
+      OIDC_ISSUER_URL: ""
+      OIDC_CLIENT_ID: ""
+      OIDC_CLIENT_SECRET: ""
+      SENTRY_ORG_SUBDOMAIN: o130137
+      SENTRY_KEY: 3cf75f54983e473da6bd07daddf0d2ee
+      SENTRY_PROJECT: "1298632"
+      SENTRY_TRACE_RATE: "0.1"
+      S3_SERVER: ""
+      S3_ACCESS_KEY: ""
+      S3_SECRET_KEY: ""
+      S3_BUCKET_NAME: ""
+    restart: always
+    volumes:
+      - odk_secrets:/etc/secrets
+      - odk_transfer:/data/transfer
+
+  odk:
+    build:
+      context: ./vendor/getodk-central
+      dockerfile: nginx.dockerfile
+    profiles: [local]
+    depends_on:
+      - service
+      - enketo
+    ports:
+      - "8383:80"
+    environment:
+      DOMAIN: odk
+      SYSADMIN_EMAIL: admin@example.com
+      SSL_TYPE: upstream
+      OIDC_ENABLED: "false"
+      HTTPS_PORT: ""
+      SENTRY_ORG_SUBDOMAIN: o130137
+      SENTRY_KEY: 3cf75f54983e473da6bd07daddf0d2ee
+      SENTRY_PROJECT: "1298632"
+    volumes:
+      - odk_secrets:/etc/secrets:ro
+      - odk_dh:/etc/dh
+      - odk_selfsign:/etc/selfsign
+
+  # XLSForm sidecar
+  sidecar:
+    build:
+      context: ./xlsform-sidecar
+    profiles: [local, cloud]
+    environment:
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "5001:5001"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:5001/health', timeout=2)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Metabase
+  metabase:
+    image: metabase/metabase:v0.50.26
+    profiles: [local, cloud]
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: ${MB_METADATA_DB}
+      MB_DB_PORT: 5432
+      MB_DB_USER: ${POSTGRES_USER}
+      MB_DB_PASS: ${POSTGRES_PASSWORD}
+      MB_DB_HOST: postgres
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      metabase-db-init:
+        condition: service_completed_successfully
+  metabase-db-init:
+    image: postgres:16.3
+    profiles: [local, cloud]
+    command: >
+      bash -lc "
+      set -euo pipefail;
+      until pg_isready -h postgres -p 5432 -U ${POSTGRES_USER}; do
+        sleep 1;
+      done;
+      if ! psql -h postgres -U ${POSTGRES_USER} -d postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='${MB_METADATA_DB}'\" | grep -q 1; then
+        psql -h postgres -U ${POSTGRES_USER} -d postgres -c \"CREATE DATABASE ${MB_METADATA_DB} OWNER ${POSTGRES_USER};\"
+      fi
+      "
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # gov-portal Spring Boot app
+  gov-portal:
+    build:
+      context: ./gov-portal
+      network: host
+    profiles: [local, cloud]
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}?characterEncoding=UTF-8&useUnicode=true
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      ODK_BASE_URL: ${ODK_BASE_URL}
+      ODK_API_TOKEN: ${ODK_API_TOKEN}
+      ODK_APP_USER_TOKEN: ${ODK_APP_USER_TOKEN}
+      ODK_EXTERNAL_URL: ${ODK_EXTERNAL_URL}
+      MB_BASE_URL: ${MB_BASE_URL}
+      MB_EMBED_SECRET: ${MB_EMBED_SECRET}
+      MB_EMBED_DASHBOARD_ID: ${MB_EMBED_DASHBOARD_ID}
+      MB_EMBED_CARD_IDS: ${MB_EMBED_CARD_IDS}
+      MB_EMBED_EXTERNAL_BASE_URL: ${MB_EMBED_EXTERNAL_BASE_URL}
+      MB_EMBED_ENABLED: ${MB_EMBED_ENABLED}
+      MB_SESSION: ${MB_SESSION}
+      MB_USERNAME: ${MB_USERNAME}
+      MB_PASSWORD: ${MB_PASSWORD}
+      MB_SESSION_TTL: ${MB_SESSION_TTL}
+      SIDECAR_BASE: ${SIDECAR_BASE}
+      SECRET_KEY: ${SECRET_KEY}
+      SERVER_PORT: ${SERVER_PORT}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+      metabase:
+        condition: service_started
+      sidecar:
+        condition: service_healthy
+      # odk는 cloud 모드에서 존재하지 않을 수 있음
+    volumes:
+      - m2_cache:/root/.m2
+
+volumes:
+  postgres_data:
+  odk_postgres14:
+  odk_secrets:
+  odk_transfer:
+  odk_dh:
+  odk_selfsign:
+  odk_redis_main:
+  odk_redis_cache:
+  m2_cache:

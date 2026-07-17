@@ -1,0 +1,5 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Feb 19 10:41:50 KST 2025
+asm-7.1.jar>mvn2s=
+asm-7.1.pom>mvn2s=
+asm-7.1-sources.jar>mvn2s=

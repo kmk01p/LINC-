@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<h:html xmlns="http://www.w3.org/2002/xforms"
+        xmlns:h="http://www.w3.org/1999/xhtml"
+        xmlns:ev="http://www.w3.org/2001/xml-events"
+        xmlns:jr="http://openrosa.org/javarosa"
+        xmlns:orx="http://openrosa.org/xforms"
+        xml:lang="ko">
+  <h:head>
+    <h:title>기본 진단 설문</h:title>
+    <model>
+      <instance>
+        <data id="baseline_survey" version="2025-11-11" xmlns="">
+          <respondent_id/>
+          <household_size/>
+          <gender/>
+          <age_group/>
+          <services/>
+          <feedback/>
+          <orx:meta>
+            <orx:instanceID/>
+          </orx:meta>
+        </data>
+      </instance>
+
+      <bind nodeset="/data/respondent_id" type="string" required="true()" jr:constraintMsg="응답자 ID는 필수입니다."/>
+      <bind nodeset="/data/household_size" type="int" required="true()" constraint=". &gt;= 1 and . &lt;= 20" jr:constraintMsg="가구원 수는 1~20 사이의 정수여야 합니다."/>
+      <bind nodeset="/data/gender" type="select1" required="true()"/>
+      <bind nodeset="/data/age_group" type="select1" required="true()"/>
+      <bind nodeset="/data/services" type="select"/>
+      <bind nodeset="/data/feedback" type="string"/>
+      <bind nodeset="/data/orx:meta/orx:instanceID" type="string" readonly="true()" jr:preload="uid" jr:preloadParams="uuid"/>
+    </model>
+  </h:head>
+
+  <h:body>
+    <input ref="/data/respondent_id">
+      <label>응답자 ID</label>
+      <hint>응답자의 고유 식별 번호</hint>
+    </input>
+
+    <input ref="/data/household_size">
+      <label>가구원 수</label>
+      <hint>함께 거주하는 가구원 수</hint>
+    </input>
+
+    <select1 ref="/data/gender">
+      <label>성별</label>
+      <item>
+        <label>여성</label>
+        <value>female</value>
+      </item>
+      <item>
+        <label>남성</label>
+        <value>male</value>
+      </item>
+      <item>
+        <label>기타</label>
+        <value>other</value>
+      </item>
+    </select1>
+
+    <select1 ref="/data/age_group">
+      <label>연령대</label>
+      <item>
+        <label>20대</label>
+        <value>20s</value>
+      </item>
+      <item>
+        <label>30대</label>
+        <value>30s</value>
+      </item>
+      <item>
+        <label>40대</label>
+        <value>40s</value>
+      </item>
+      <item>
+        <label>50대</label>
+        <value>50s</value>
+      </item>
+      <item>
+        <label>60대 이상</label>
+        <value>60plus</value>
+      </item>
+    </select1>
+
+    <select ref="/data/services">
+      <label>필요한 서비스 (복수 선택 가능)</label>
+      <hint>필요한 서비스를 모두 선택해주세요</hint>
+      <item>
+        <label>상담 서비스</label>
+        <value>counseling</value>
+      </item>
+      <item>
+        <label>교육 프로그램</label>
+        <value>training</value>
+      </item>
+      <item>
+        <label>현금 지원</label>
+        <value>cash</value>
+      </item>
+      <item>
+        <label>의료 지원</label>
+        <value>medical</value>
+      </item>
+    </select>
+
+    <input ref="/data/feedback">
+      <label>추가 의견</label>
+      <hint>기타 의견이 있으시면 작성해주세요</hint>
+    </input>
+  </h:body>
+</h:html>

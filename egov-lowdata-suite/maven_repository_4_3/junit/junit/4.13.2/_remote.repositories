@@ -1,0 +1,5 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Feb 19 10:42:38 KST 2025
+junit-4.13.2.jar>mvn2s=
+junit-4.13.2.pom>mvn2s=
+junit-4.13.2-sources.jar>mvn2s=

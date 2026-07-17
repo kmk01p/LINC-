@@ -1,0 +1,58 @@
+# Metabase 설정
+metabase:
+  base-url: ${MB_BASE_URL:http://localhost:3000}
+  embed-secret: ${MB_EMBED_SECRET:}
+  dashboard-id: ${MB_EMBED_DASHBOARD_ID:0}
+  card-ids: ${MB_EMBED_CARD_IDS:}
+  embed-external-base-url: ${MB_EMBED_EXTERNAL_BASE_URL:}
+  enabled: ${MB_EMBED_ENABLED:false}
+  session: ${MB_SESSION:}
+  database-id: ${MB_DATABASE_ID:1}
+  username: ${MB_USERNAME:}
+  password: ${MB_PASSWORD:}
+  session-ttl-seconds: ${MB_SESSION_TTL:3600}
+
+odk:
+  external-url: ${ODK_EXTERNAL_URL:}
+
+# dbt 설정
+dbt:
+  profiles-dir: ${DBT_PROFILES_DIR:/app/etl}
+  project-dir: ${DBT_PROJECT_DIR:/app/etl}
+
+# K-eGov 설정
+kegov:
+  api-url: ${KEGOV_API_URL:http://localhost:9000}
+  api-key: ${KEGOV_API_KEY:}
+
+# Quartz 설정
+spring:
+  datasource:
+    hikari:
+      connection-init-sql: "SET TIME ZONE 'Asia/Seoul'"
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  messages:
+    encoding: UTF-8
+  quartz:
+    job-store-type: jdbc
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: EgovScheduler
+            instanceId: AUTO
+          jobStore:
+            class: org.quartz.impl.jdbcjobstore.JobStoreTX
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+            useProperties: false
+            misfireThreshold: 60000
+            tablePrefix: QRTZ_
+            isClustered: true
+          threadPool:
+            class: org.quartz.simpl.SimpleThreadPool
+            threadCount: 10
+            threadPriority: 5

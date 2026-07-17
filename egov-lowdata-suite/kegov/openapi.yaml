@@ -1,0 +1,31 @@
+openapi: 3.0.0
+info:
+  title: K-eGov Aggregation API
+  version: 1.0.0
+  description: |
+    예시 용도의 K-eGov 집계 전송 API 계약서입니다. 프로젝트별 집계 데이터를 전송하면 응답으로 수신 결과를 반환합니다.
+paths:
+  /publish:
+    post:
+      summary: Publish aggregated metrics
+      requestBody:
+        description: Aggregated KPI payload
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timestamp:
+                  type: string
+                  format: date-time
+                metrics:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '500':
+          description: Server error

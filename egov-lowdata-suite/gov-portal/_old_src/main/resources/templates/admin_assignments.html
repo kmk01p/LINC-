@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Assign Roles</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body class="container mt-5">
+<h2>Assign Role to User</h2>
+<form th:action="@{/admin/assign-role}" method="post">
+    <div class="mb-3">
+        <label class="form-label">User</label>
+        <select name="userId" class="form-select">
+            <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.username}"></option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Role</label>
+        <select name="roleId" class="form-select">
+            <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"></option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Assign</button>
+</form>
+</body>
+</html>

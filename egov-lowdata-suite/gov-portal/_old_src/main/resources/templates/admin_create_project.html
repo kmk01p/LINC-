@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Project</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body class="container mt-5">
+<h2>Create Project</h2>
+<form th:action="@{/admin/projects}" method="post">
+    <div class="mb-3">
+        <label class="form-label">Tenant ID</label>
+        <input type="text" name="tenantId" class="form-control" required/>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Project Name</label>
+        <input type="text" name="name" class="form-control" required/>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Country</label>
+        <input type="text" name="country" class="form-control"/>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Sector</label>
+        <input type="text" name="sector" class="form-control"/>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Languages (comma separated)</label>
+        <input type="text" name="languages" class="form-control"/>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Codebook (JSON)</label>
+        <textarea name="codebook" class="form-control" rows="4"></textarea>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Form Template (JSON)</label>
+        <textarea name="formTemplate" class="form-control" rows="6" placeholder='{"name":"form","children":[]}'></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Create & Deploy</button>
+</form>
+</body>
+</html>

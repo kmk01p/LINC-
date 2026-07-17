@@ -1,0 +1,21 @@
+{
+  "name": "diagnosis_form",
+  "title": "Diagnosis Verification",
+  "children": [
+    {
+      "name": "patient_id",
+      "type": "string",
+      "label": "Patient ID"
+    },
+    {
+      "name": "diagnosis",
+      "type": "string",
+      "label": "Diagnosis Code"
+    },
+    {
+      "name": "comments",
+      "type": "text",
+      "label": "Comments"
+    }
+  ]
+}
